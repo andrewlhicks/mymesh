@@ -1,0 +1,3 @@
+import mymesh
+
+mymesh.CreateShellMesh()
