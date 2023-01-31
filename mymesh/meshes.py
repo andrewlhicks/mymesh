@@ -1,29 +1,35 @@
 import gmsh
 
-def CreateShellMesh():
+def CreateShellMesh(inner_center=[0,0,0], inner_radius=0.8, mesh_size=0.02, name="ShellMesh"):
     # inner and outer radius
-    r1 = 0.8
-    r2 = 1
+    r1 = inner_radius
+    r0 = 1
+
     # center of outer circle
-    x = 0
-    y = 0
-    z = 0
+    x0 = 0
+    y0 = 0
+    z0 = 0
+
     # center of the inner circle
-    x1 = 0
-    y1 = 0
-    z1 = 0.1
-    ndens = 0.02
+    x1 = inner_center[0]
+    y1 = inner_center[1]
+    z1 = inner_center[2]
+
+    # node density
+    ndens = mesh_size
+
+    # initialize
     gmsh.initialize()
-    gmsh.model.add('ShellMesh')
+    gmsh.model.add(name)
 
     # add points for outer shell
-    gmsh.model.geo.addPoint(x, y, z, ndens, 1)
-    gmsh.model.geo.addPoint(x+r2, y, z, ndens, 2)
-    gmsh.model.geo.addPoint(x-r2, y, z, ndens, 3)
-    gmsh.model.geo.addPoint(x, y+r2, z, ndens, 4)
-    gmsh.model.geo.addPoint(x, y-r2, z, ndens, 5)
-    gmsh.model.geo.addPoint(x, y, z+r2, ndens, 6)
-    gmsh.model.geo.addPoint(x, y, z-r2, ndens, 7)
+    gmsh.model.geo.addPoint(x0, y0, z0, ndens, 1)
+    gmsh.model.geo.addPoint(x0+r0, y0, z0, ndens, 2)
+    gmsh.model.geo.addPoint(x0-r0, y0, z0, ndens, 3)
+    gmsh.model.geo.addPoint(x0, y0+r0, z0, ndens, 4)
+    gmsh.model.geo.addPoint(x0, y0-r0, z0, ndens, 5)
+    gmsh.model.geo.addPoint(x0, y0, z0+r0, ndens, 6)
+    gmsh.model.geo.addPoint(x0, y0, z0-r0, ndens, 7)
 
     # add circles for outer shell
     gmsh.model.geo.addCircleArc(2, 1, 4, 1)
@@ -39,6 +45,7 @@ def CreateShellMesh():
     gmsh.model.geo.addCircleArc(5, 1, 7, 11)
     gmsh.model.geo.addCircleArc(7, 1, 4, 12)
 
+    # add surfaces for outer shell
     gmsh.model.geo.addCurveLoop([2, 7, 12], 1)
     gmsh.model.geo.addSurfaceFilling([1], 1)
 
@@ -63,6 +70,7 @@ def CreateShellMesh():
     gmsh.model.geo.addCurveLoop([1, -12, 8], 8)
     gmsh.model.geo.addSurfaceFilling([8], 8)
 
+    # add points for inner shell
     gmsh.model.geo.addPoint(x1, y1, z1, ndens, 14)
     gmsh.model.geo.addPoint(x1+r1, y1, z1, ndens, 8)
     gmsh.model.geo.addPoint(x1-r1, y1, z1, ndens, 9)
@@ -71,6 +79,7 @@ def CreateShellMesh():
     gmsh.model.geo.addPoint(x1, y1, z1+r1, ndens, 12)
     gmsh.model.geo.addPoint(x1, y1, z1-r1, ndens, 13)
 
+    # add circles for inner shell
     gmsh.model.geo.addCircleArc(8, 14, 10, 13)
     gmsh.model.geo.addCircleArc(10, 14, 9, 14)
     gmsh.model.geo.addCircleArc(9, 14, 11, 15)
@@ -84,6 +93,7 @@ def CreateShellMesh():
     gmsh.model.geo.addCircleArc(11, 14, 13, 23)
     gmsh.model.geo.addCircleArc(13, 14, 10, 24)
 
+    # add surfaces for inner shell
     gmsh.model.geo.addCurveLoop([14, 19, 24], 9)
     gmsh.model.geo.addSurfaceFilling([9], 9)
 
@@ -108,18 +118,24 @@ def CreateShellMesh():
     gmsh.model.geo.addCurveLoop([13, -24, 20], 16)
     gmsh.model.geo.addSurfaceFilling([16], 16)
 
+    # add surface loops and volume
     gmsh.model.geo.addSurfaceLoop([1, 2, 3, 4, 5, 6, 7, 8], 1)
     gmsh.model.geo.addSurfaceLoop([9, 10, 11, 12, 13, 14, 15, 16], 2)
     gmsh.model.geo.addVolume([1, 2], 1)
 
+    # must synchronize in order to properly generate mesh
     gmsh.model.geo.synchronize()
 
+    # add physical groups
     gmsh.model.geo.addPhysicalGroup(2, [1, 2, 3, 4, 5, 6, 7, 8], 101)
     gmsh.model.geo.addPhysicalGroup(2, [9, 10, 11, 12, 13, 14, 15, 16], 102)
     gmsh.model.geo.addPhysicalGroup(3, [1], 103)
 
+    # generate 3d mesh
     gmsh.model.mesh.generate(3)
 
-    gmsh.write('ShellMesh.msh')
+    # write to disk
+    gmsh.write(f'{name}.msh')
     
+    # done
     gmsh.finalize()
