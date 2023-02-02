@@ -1,6 +1,6 @@
 import gmsh
 
-def CreateShellMesh(inner_center=[0,0,0], inner_radius=0.8, mesh_size=0.02, name="ShellMesh"):
+def CreateShellMesh(inner_center=[0,0,0], inner_radius=0.8, mesh_size=0.02, path='mesh.msh'):
     # inner and outer radius
     r1 = inner_radius
     r0 = 1
@@ -20,6 +20,14 @@ def CreateShellMesh(inner_center=[0,0,0], inner_radius=0.8, mesh_size=0.02, name
 
     # initialize
     gmsh.initialize()
+
+    # get mesh name from path
+    filename = path.split('/')[-1]
+    if filename[-4:] != '.msh':
+        raise ValueError
+    name = filename[:-4]
+
+    # set up model
     gmsh.model.add(name)
 
     # add points for outer shell
@@ -127,15 +135,15 @@ def CreateShellMesh(inner_center=[0,0,0], inner_radius=0.8, mesh_size=0.02, name
     gmsh.model.geo.synchronize()
 
     # add physical groups
-    gmsh.model.geo.addPhysicalGroup(2, [1, 2, 3, 4, 5, 6, 7, 8], 101)
-    gmsh.model.geo.addPhysicalGroup(2, [9, 10, 11, 12, 13, 14, 15, 16], 102)
-    gmsh.model.geo.addPhysicalGroup(3, [1], 103)
+    gmsh.model.addPhysicalGroup(2, [1, 2, 3, 4, 5, 6, 7, 8], 101)
+    gmsh.model.addPhysicalGroup(2, [9, 10, 11, 12, 13, 14, 15, 16], 102)
+    gmsh.model.addPhysicalGroup(3, [1], 103)
 
     # generate 3d mesh
     gmsh.model.mesh.generate(3)
 
     # write to disk
-    gmsh.write(f'{name}.msh')
+    gmsh.write(path)
     
     # done
     gmsh.finalize()
