@@ -1,9 +1,9 @@
 import gmsh
 
-def CreateShellMesh(inner_center=[0,0,0], inner_radius=0.8, mesh_size=0.02, path='mesh.msh'):
+def CreateShellMesh(inner_center=[0,0,0], inner_radius=0.8, outer_radius=1.0, mesh_size=0.02, path='mesh.msh'):
     # inner and outer radius
     r1 = inner_radius
-    r0 = 1
+    r0 = outer_radius
 
     # center of outer circle
     x0 = 0
